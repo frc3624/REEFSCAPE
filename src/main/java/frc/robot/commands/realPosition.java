@@ -6,36 +6,32 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class realPosition extends Command {
 
   private final Arm arm;
-  private boolean reached;
   private double position;
   
   public realPosition(Arm arm, double position) {
     this.arm = arm;
-    reached = false;
     this.position = position;
     addRequirements(arm);
   }
 
   @Override
   public void initialize() {
+    arm.setPosition(position);
   }
 
   @Override
   public void execute() {
-    arm.setPosition(.3); 
+    System.out.println("MOVINGI");
   }
 
   @Override
   public void end(boolean interrupted) {
-
-    arm.setSpeed(0);
-    reached = false;
-
   }
 
   @Override
   public boolean isFinished() {
-    return reached;
+    System.out.println("REACHD");
+    return arm.reached();
   }
 }
 
