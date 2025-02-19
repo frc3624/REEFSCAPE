@@ -19,9 +19,9 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.AlgaeIntake;
 import frc.robot.commands.Blink;
 import frc.robot.commands.CoralIntake;
-import frc.robot.commands.armPosition;
 import frc.robot.commands.spin;
 import frc.robot.commands.Climb;
+import frc.robot.commands.realPosition;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.Intake;
@@ -55,16 +55,16 @@ public class RobotContainer
 
   //Commands
   //intake
-  private final CoralIntake coralIntake = new CoralIntake(Intake, .2, limit);
-  private final CoralIntake coralDeposit = new CoralIntake(Intake, -.2, limit);
-  private final AlgaeIntake algaeIntake = new AlgaeIntake(Intake, 0.2);
-  private final AlgaeIntake algaeDeposit = new AlgaeIntake(Intake, -0.2);
+  private final CoralIntake coralIntake = new CoralIntake(Intake, .5, limit);
+  private final CoralIntake coralDeposit = new CoralIntake(Intake, -.5, limit);
+  private final AlgaeIntake algaeIntake = new AlgaeIntake(Intake, 0.5);
+  private final AlgaeIntake algaeDeposit = new AlgaeIntake(Intake, -0.5);
   
   //arm positions
-  private final armPosition daHigh = new armPosition(arm, 0.32);
-  private final armPosition coralPosition = new armPosition(arm, 0.05);
-  private final armPosition deAlgify = new armPosition(arm, 0.35);
-  
+  private final realPosition groundIntake = new realPosition(arm, 0);
+  private final realPosition stationIntake = new realPosition(arm, 0.3);
+  private final realPosition depositL1 = new realPosition(arm, 0.2);
+  private final realPosition dealgaefyL2 = new realPosition(arm, 0.006);
   //spin
   private final spin clockWise = new spin(arm, .4);
   private final spin counterClockWise = new spin(arm, -.4);
@@ -101,6 +101,10 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
+
+    NamedCommands.registerCommand("CoralDeposit", coralDeposit);
+    NamedCommands.registerCommand("CoralIntake", coralIntake);
+
   }
 
   /**
@@ -116,8 +120,8 @@ public class RobotContainer
     //Driver
 
     //Arm
-    driverXbox.rightTrigger().whileTrue(clockWise);
-    driverXbox.leftTrigger().whileTrue(counterClockWise);
+    driverXbox.povUp().toggleOnTrue(dealgaefyL2);
+    driverXbox.povRight().toggleOnTrue(depositL1);
 
     //Intake
     driverXbox.a().whileTrue(coralIntake);
@@ -129,16 +133,17 @@ public class RobotContainer
     //Operator
 
     //Arm
-    driverXbox2.povUp().toggleOnTrue(daHigh);
-    driverXbox2.povLeft().toggleOnTrue(coralPosition);
+    driverXbox.rightTrigger().whileTrue(clockWise);
+    driverXbox.leftTrigger().whileTrue(counterClockWise);
+
     driverXbox2.rightTrigger().whileTrue(clockWise);
     driverXbox2.leftTrigger().whileTrue(counterClockWise);
 
     //Intake
-    driverXbox2.a().whileTrue(coralIntake);
-    driverXbox2.x().whileTrue(coralDeposit);
-    driverXbox2.y().whileTrue(algaeIntake);
-    driverXbox2.b().whileTrue(algaeDeposit);
+    driverXbox2.a().toggleOnTrue(coralIntake);
+    driverXbox2.x().toggleOnTrue(coralDeposit);
+    driverXbox2.y().toggleOnTrue(algaeIntake);
+    driverXbox2.b().toggleOnTrue(algaeDeposit);
 
     //Climb
     driverXbox2.leftBumper().toggleOnTrue(start);
