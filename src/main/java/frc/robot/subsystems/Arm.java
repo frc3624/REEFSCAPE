@@ -5,8 +5,10 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Timer;
+
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -15,31 +17,45 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.ClosedLoopSlot;
 import static frc.robot.Constants.Motors.*;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.revrobotics.spark.SparkClosedLoopController;
-
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class Arm extends SubsystemBase {
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class Arm2 extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   private final SparkMax leader = new SparkMax(leftMotor, MotorType.kBrushless);
   private final SparkMax follower = new SparkMax(rightMotor, MotorType.kBrushless);
 
   private final SparkAbsoluteEncoder encoder = leader.getAbsoluteEncoder();
-  
-  private double setpoint = 0;
-  
-  private SparkClosedLoopController armPIDController = leader.getClosedLoopController();
-  
-  public Arm() {
+
+  private ProfiledPIDController controller = new ProfiledPIDController(0.01, 0, 0, new TrapezoidProfile.Constraints(.5, .5));
+  private double lastSpeed = 0;
+  private double lastTime = Timer.getFPGATimestamp();
+
+  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0, 0, 192.71);
+
+  public void goToPosition(double goalPosition){
+    double pidVal = controller.calculate(encoder.getPosition(), goalPosition);
+    double acceleration = (controller.getSetpoint().velocity - lastSpeed) / (Timer.getFPGATimestamp() - lastTime);
+    leader.setVoltage(pidVal + feedforward.calculate(controller.getSetpoint().velocity, acceleration));
+    lastSpeed = controller.getSetpoint().velocity;
+    lastTime = Timer.getFPGATimestamp();
+  }
+
+  public void setSpeed(double speed){
+    leader.set(speed);
+  }
+
+  public Arm2() {
     configureMotors();
   }
 
@@ -48,10 +64,9 @@ public class Arm extends SubsystemBase {
     SparkMaxConfig followerConfig = new SparkMaxConfig();
 
     leaderConfig.encoder.positionConversionFactor(1).velocityConversionFactor(1);
-    leaderConfig.closedLoop.pid(0.03, 0, 0);
+    leaderConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
     leaderConfig.closedLoopRampRate(2);
-    followerConfig.closedLoopRampRate(2);
 
     followerConfig.follow(leftMotor);
 
@@ -59,38 +74,13 @@ public class Arm extends SubsystemBase {
     leader.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public double getPosition(){
-    double position = encoder.getPosition();
-    
-    return position;
-  }
 
-  public void setPosition(double pos){
-    this.setpoint = pos;
-
-
-    armPIDController.setReference(setpoint, ControlType.kPosition, ClosedLoopSlot.kSlot0);
-  }
-
-  public void setSpeed(double speed){
-    follower.set(speed);
-    leader.set(speed);
-  }
-
-  public boolean reached(){
-    if((setpoint - .001 <= encoder.getPosition()) && (encoder.getPosition() <= setpoint + .001)){
-      return true;
-    }
-    else{
-      return false;
-    }
-  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
     SmartDashboard.putNumber("Position", encoder.getPosition());
-    SmartDashboard.putNumber("SetPosition", setpoint);
   }
 
   @Override
