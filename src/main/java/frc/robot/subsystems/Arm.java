@@ -30,7 +30,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Arm2 extends SubsystemBase {
+public class Arm extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   private final SparkMax leader = new SparkMax(leftMotor, MotorType.kBrushless);
   private final SparkMax follower = new SparkMax(rightMotor, MotorType.kBrushless);
@@ -55,7 +55,7 @@ public class Arm2 extends SubsystemBase {
     leader.set(speed);
   }
 
-  public Arm2() {
+  public Arm() {
     configureMotors();
   }
 
