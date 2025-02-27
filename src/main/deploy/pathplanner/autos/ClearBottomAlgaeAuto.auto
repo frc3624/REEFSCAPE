@@ -19,31 +19,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 4.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "IntakeStationPath"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "coralIntake"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
             "waitTime": 1.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "CoralDeposit2Path"
+            "pathName": "ReefSidePath1"
           }
         },
         {
@@ -57,11 +39,35 @@
           "data": {
             "waitTime": 1.0
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ReefSidePath2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "coralDeposit"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Reef2ToStationPath"
+          }
         }
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
